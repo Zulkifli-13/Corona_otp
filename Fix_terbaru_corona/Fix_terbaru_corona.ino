@@ -9,36 +9,29 @@
 #define STAPSK  "12345678"
 #endif
 
-const unsigned int TRIG_PIN=14;
-const unsigned int ECHO_PIN=12;
-const unsigned int BAUD_RATE=115200;
+#define trigPin 14
+#define echoPin 12
 
+// Define variables:
+long duration;
+int distance;
 const char* ssid = STASSID;
 const char* password = STAPSK;
+int count=0;
 
 void setup() {
   Serial.begin(115200);
   Serial.println("Booting");
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
-//  while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-//    Serial.println("Connection Failed! Rebooting...");
-//    delay(5000);
-//    ESP.restart();
-//  }
-
-  // Port defaults to 8266
-  // ArduinoOTA.setPort(8266);
-
-  // Hostname defaults to esp8266-[ChipID]
-  // ArduinoOTA.setHostname("myesp8266");
-
-  // No authentication by default
-  // ArduinoOTA.setPassword("admin");
-
-  // Password can be set with it's md5 value as well
-  // MD5(admin) = 21232f297a57a5a743894a0e4a801fc3
-  // ArduinoOTA.setPasswordHash("21232f297a57a5a743894a0e4a801fc3");
+while (WiFi.waitForConnectResult() != WL_CONNECTED) {
+Serial.println("Connection Failed! Rebooting...");
+delay(50);
+count++;
+if (count>=2){
+  break;
+}
+}
 
   ArduinoOTA.onStart([]() {
     String type;
@@ -48,7 +41,7 @@ void setup() {
       type = "filesystem";
     }
 
-    // NOTE: if updating FS this would be the place to unmount FS using FS.end()
+   // NOTE: if updating FS this would be the place to unmount FS using FS.end()
     Serial.println("Start updating " + type);
   });
   ArduinoOTA.onEnd([]() {
@@ -76,44 +69,49 @@ void setup() {
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
 
-  //isi coding mulai disini, yang atas jangan diubah
-  pinMode(TRIG_PIN, OUTPUT);
-  pinMode(ECHO_PIN, INPUT);
+  
+  // Define inputs and outputs:
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
   pinMode(13, OUTPUT);
   
+
+
 }
 
 void loop() {
   if(WiFi.status() == WL_CONNECTED){
     ArduinoOTA.handle();
   }
-  sensor1(); 
-}
+    
+  // Clear the trigPin by setting it LOW:
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(5);
 
-
-//-------------------------Sensor1---------------------------------- 
-void sensor1()
-{
-  
-  digitalWrite(TRIG_PIN, LOW);
-  delayMicroseconds(2);
-  digitalWrite(TRIG_PIN, HIGH);
+  // Trigger the sensor by setting the trigPin high for 10 microseconds:
+  digitalWrite(trigPin, HIGH);
   delayMicroseconds(10);
-  digitalWrite(TRIG_PIN, LOW);
+  digitalWrite(trigPin, LOW);
 
-const unsigned long duration= pulseIn(ECHO_PIN, HIGH);
- int distance= duration/29/2;
-  if(duration<=20){
-//   delay(1000);
-   digitalWrite(13, HIGH);
-   delay(5000);
-   digitalWrite(13, LOW);
-   } 
-  else{
-  digitalWrite(13, LOW);
+  // Read the echoPin, pulseIn() returns the duration (length of the pulse) in microseconds:
+  duration = pulseIn(echoPin, HIGH);
+  // Calculate the distance:
+  distance= duration/29/2;
+
+  // Print the distance on the Serial Monitor (Ctrl+Shift+M):
+//  Serial.print("Distance = ");
+//  Serial.print(distance);
+//  Serial.println(" cm");
+
+  if( distance <= 20){
+    delay(1000);
+    digitalWrite(13, HIGH);
+    delay(5000);
+    digitalWrite(13, LOW);
   }
-  delay(1000);
-}  
+  else{
+    digitalWrite(13, LOW);
+  }
+  delay(100);
 
-
-//---------------------------end Sensor1---------------------------------------
+}

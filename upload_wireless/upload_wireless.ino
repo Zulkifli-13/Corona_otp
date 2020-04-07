@@ -3,15 +3,10 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
-
 #ifndef STASSID
 #define STASSID "KODETANI"
 #define STAPSK  "12345678"
 #endif
-
-const unsigned int TRIG_PIN=14;
-const unsigned int ECHO_PIN=12;
-const unsigned int BAUD_RATE=115200;
 
 const char* ssid = STASSID;
 const char* password = STAPSK;
@@ -21,11 +16,17 @@ void setup() {
   Serial.println("Booting");
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
-//  while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-//    Serial.println("Connection Failed! Rebooting...");
-//    delay(5000);
-//    ESP.restart();
-//  }
+  int count = 0;
+  
+  
+while (WiFi.waitForConnectResult() != WL_CONNECTED) {
+Serial.println("Connection Failed! Rebooting...");
+delay(50);
+count++;
+if (count>=2){
+  break;
+}
+}
 
   // Port defaults to 8266
   // ArduinoOTA.setPort(8266);
@@ -77,43 +78,16 @@ void setup() {
   Serial.println(WiFi.localIP());
 
   //isi coding mulai disini, yang atas jangan diubah
-  pinMode(TRIG_PIN, OUTPUT);
-  pinMode(ECHO_PIN, INPUT);
   pinMode(13, OUTPUT);
   
 }
 
 void loop() {
-  if(WiFi.status() == WL_CONNECTED){
+    if(WiFi.status() == WL_CONNECTED){
     ArduinoOTA.handle();
   }
-  sensor1(); 
-}
-
-
-//-------------------------Sensor1---------------------------------- 
-void sensor1()
-{
-  
-  digitalWrite(TRIG_PIN, LOW);
-  delayMicroseconds(2);
-  digitalWrite(TRIG_PIN, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(TRIG_PIN, LOW);
-
-const unsigned long duration= pulseIn(ECHO_PIN, HIGH);
- int distance= duration/29/2;
-  if(duration<=20){
-//   delay(1000);
-   digitalWrite(13, HIGH);
-   delay(5000);
-   digitalWrite(13, LOW);
-   } 
-  else{
+  digitalWrite(13, HIGH);
+  delay(250);
   digitalWrite(13, LOW);
-  }
-  delay(1000);
-}  
-
-
-//---------------------------end Sensor1---------------------------------------
+  delay(250);
+}
